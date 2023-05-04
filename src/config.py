@@ -40,8 +40,7 @@ class SystemConfig:
     def get_vital(key: str):
         if not SystemConfig.__loaded:
             SystemConfig.load()
-        env_val = os.getenv(key)
-        if env_val:
+        if env_val := os.getenv(key):
             return env_val
         raise Exception(f"Mandatory parameter: {key} not available in env | Env file read: {is_env_file} ")
 

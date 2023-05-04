@@ -103,7 +103,7 @@ async def _prepare_dependency_matrix(notebook: Notebook):
         dependent_versions = notebook.dependency_log.dependency_versions or {}
         for d_version in dependent_versions:
             versions_data: dict = nb_store.get_data(notebook.name, d_version)
-            requirements.update(versions_data)
+            requirements |= versions_data
     return requirements
 
 
@@ -235,10 +235,9 @@ def run(notebook: NotebookExecutionRequest):
 
     _update_execution_status(exe_id=notebook_exe_id, name=fqn, status=Status.RUNNING)
     try:
-        stdout_file = open(stdout_file_name, "a+")
-        _execute_jupyter(notebook, notebook_file, output_file, params, stdout_file)
+        with open(stdout_file_name, "a+") as stdout_file:
+            _execute_jupyter(notebook, notebook_file, output_file, params, stdout_file)
 
-        stdout_file.close()
         logger.info(f"Execution of {fqn} completed")
 
         write_files(export_list=["html"], nb_node=get_notebook(output_file), file_name=output_file_name)
@@ -303,7 +302,7 @@ def _update_execution_status(exe_id, name: str, status, params=None, errors=None
         execution.errors = errors_list
     if status == Status.STARTED:
         execution.started_at = datetime.datetime.now()
-    elif status == Status.FAILURE or status == Status.SUCCESS:
+    elif status in [Status.FAILURE, Status.SUCCESS]:
         execution.completed_by = datetime.datetime.now()
     exe_status.executions[exe_id] = execution
     execution_store.put(name, exe_status)

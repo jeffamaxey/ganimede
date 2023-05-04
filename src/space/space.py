@@ -23,11 +23,11 @@ def verify_integrity():
 
 
 def _generate_requirements(notebook: NotebookBasic, container_path):
-    requirements = []
     requirements_data = nb_store.get_data(notebook.name, notebook.version)
-    for key in requirements_data:
-        requirements.append(pkg_info(key, requirements_data.get(key, "")))
-    if requirements:
+    if requirements := [
+        pkg_info(key, requirements_data.get(key, ""))
+        for key in requirements_data
+    ]:
         write_file(container_path, "requirements.txt", '\n'.join(requirements))
         return True
     return False

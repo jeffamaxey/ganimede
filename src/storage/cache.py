@@ -39,11 +39,11 @@ class Cache(abc.ABC):
         return Cache.__cache__.exists(self.internal_key(key))
 
     def keys(self):
-        return Cache.__cache__.keys(self.data_prefix() + "*")
+        return Cache.__cache__.keys(f"{self.data_prefix()}*")
 
     @abc.abstractmethod
     def data_prefix(self) -> str:
         pass
 
     def internal_key(self, key: str):
-        return self.data_prefix() + str(key)
+        return self.data_prefix() + key

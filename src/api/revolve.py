@@ -46,6 +46,5 @@ async def test_token(text: str, i_am: str, response: Response):
     if i_am == "vengeful_buddha":
         return {"token": CrypticTalk.def_encrypt(text), "warn": "DONOT use the API in production; follow standard "
                                                                 "practices"}
-    else:
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return {"error": "You are not one of us"}
+    response.status_code = status.HTTP_401_UNAUTHORIZED
+    return {"error": "You are not one of us"}

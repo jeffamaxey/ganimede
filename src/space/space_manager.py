@@ -46,7 +46,11 @@ async def update(update_req: NotebookUpdate, token: str) -> UpdateFromSpaceRespo
         book = Notebook(name=update_req.base_nb.name, version=update_req.new_version, dependency_log=log)
         defined_book = await jupyter.define(book)
         await jupyter.copy_notebook(notebook=book, from_location=nb_loc)
-        info = "Version updated automatically" if not defined_book.version == update_req.new_version else None
+        info = (
+            "Version updated automatically"
+            if defined_book.version != update_req.new_version
+            else None
+        )
         return UpdateFromSpaceResponse(request=defined_book, status=Status.SUCCESS,
                                        info=info)
     except Exception as e:
@@ -54,11 +58,15 @@ async def update(update_req: NotebookUpdate, token: str) -> UpdateFromSpaceRespo
 
 
 async def _create_new(path, port, request_id) -> SpaceManagedResponse:
-    if space.verify_integrity():
-        deployment = docker_cli.docker_compose(f"-f {paths(path, 'docker-compose.yml')} up -d")
-        if deployment["status"] == Status.SUCCESS.value:
-            return SpaceManagedResponse(url=f'http://{system.ip()}:{port}', request_id=request_id)
-        else:
-            return SpaceManagedResponse(error=["Deployment failed. Please contact admin"])
-    else:
+    if not space.verify_integrity():
         return SpaceManagedResponse(error=["Required systems are not installed. Please contact admin"])
+    deployment = docker_cli.docker_compose(f"-f {paths(path, 'docker-compose.yml')} up -d")
+    return (
+        SpaceManagedResponse(
+            url=f'http://{system.ip()}:{port}', request_id=request_id
+        )
+        if deployment["status"] == Status.SUCCESS.value
+        else SpaceManagedResponse(
+            error=["Deployment failed. Please contact admin"]
+        )
+    )

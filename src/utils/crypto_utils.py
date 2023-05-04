@@ -53,4 +53,4 @@ class CrypticTalk:
 
     @staticmethod
     def _unpad(s):
-        return s[:-ord(s[len(s) - 1:])]
+        return s[:-ord(s[-1:])]
